@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ringkasan Data dari Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f9fafc;
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+        }
+
+        .summary-box {
+            display: inline-block;
+            background: white;
+            padding: 25px 40px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-box p {
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>📊 Ringkasan Data dari Google Sheets</h2>
+
+    <div class="summary-box">
+        <p id="totalData">Total Data: ...</p>
+        <p id="avgScore">Rata-rata Score: ...</p>
+        <p id="lastMonth">Bulan Terakhir: ...</p>
+    </div>
+
+    <script>
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vStJEUNZfFWX_Kf8Xc0crZThCanAXBqJ1wYa-46qz_iX2hFCwSy07m90bn6IYOzqfmmmtzzbvcREJos/pub?output=csv';
+
+        fetch(sheetUrl)
+            .then(res => res.text())
+            .then(csv => {
+                const rows = csv.trim().split('\n').map(r => r.split(','));
+
+                const scores = [];
+                const totalRecords = rows.length - 1; // tanpa header
+
+                // Ambil kolom score (index ke-5)
+                for (let i = 1; i < rows.length; i++) {
+                    const rawScore = rows[i][5];
+                    const scoreValue = rawScore.split('/')[0].trim();
+                    scores.push(Number(scoreValue));
+                }
+
+                // Hitung rata-rata
+                const totalScore = scores.reduce((a, b) => a + b, 0);
+                const avgScore = (totalScore / totalRecords).toFixed(2);
+
+                // Ambil timestamp terakhir (kolom index ke-0)
+                const lastTimestamp = rows[rows.length - 1][0];
+
+                // Konversi ke bulan (format nama bulan Indonesia)
+                const dateObj = new Date(lastTimestamp);
+                const monthNames = [
+                    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+                ];
+                const monthName = monthNames[dateObj.getMonth()];
+
+                // Tampilkan hasil
+                document.getElementById('totalData').textContent = `Total Data: ${totalRecords}`;
+                document.getElementById('avgScore').textContent = `Rata-rata Score: ${avgScore}`;
+                document.getElementById('lastMonth').textContent = `Bulan Terakhir: ${monthName}`;
+
+                // Simpan variabel global (kalau mau dipakai lagi)
+                window.scores = scores;
+                window.totalRecords = totalRecords;
+                window.avgScore = avgScore;
+                window.lastMonth = monthName;
+            });
+    </script>
+</body>
+
+</html>
