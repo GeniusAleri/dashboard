@@ -105,7 +105,7 @@
             <div class="col-md-4">
                 <div class="card card-dark text-center p-3">
                     <h6 class="text-secondary">Kebugaran Jasmani</h6>
-                    <h3>Memuat...</h3>
+                    <h3>85.00 / 100</h3>
                 </div>
             </div>
             <div class="col-md-4">
@@ -136,7 +136,7 @@
                             <span>Pengetahuan</span><span id="totalPengetahuan">Memuat...</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded mb-2">
-                            <span>Kebugaran Jasmani</span><span>Memuat...</span>
+                            <span>Kebugaran Jasmani</span><span>Total Data : 1</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
                             <span>Keterampilan Teknis</span><span id="totalKeterampilan">Memuat...</span>
@@ -246,12 +246,19 @@
             window.avgK = avgK;
         }
 
-        function updateChartPerkembangan(pengetahuan, keterampilan) {
-            const months = [...new Set([...pengetahuan, ...keterampilan].map(d => d.month))];
+        function updateChartPerkembangan(pengetahuan = [], keterampilan = []) {
+            // Jika pengetahuan/keterampilan kosong, gunakan bulan default
+            const defaultMonths = ['Nov'];
+            const monthsFromData = [...new Set([...pengetahuan, ...keterampilan].map(d => d.month))];
+            const months = monthsFromData.length ? monthsFromData : defaultMonths;
+
             const countPerMonth = (data) => months.map(m => data.filter(d => d.month === m).length);
 
             const dataP = countPerMonth(pengetahuan);
             const dataK = countPerMonth(keterampilan);
+
+            // Bar Kebugaran selalu data 2
+            const dataB = months.map(() => 1);
 
             const ctx = document.getElementById('monthlyDataChart').getContext('2d');
             if (chartPerkembangan) chartPerkembangan.destroy();
@@ -262,22 +269,28 @@
                     labels: months,
                     datasets: [
                         { label: 'Pengetahuan', data: dataP, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
-                        { label: 'Keterampilan Teknis', data: dataK, backgroundColor: 'rgba(255, 206, 86, 0.7)' }
+                        { label: 'Keterampilan Teknis', data: dataK, backgroundColor: 'rgba(255, 206, 86, 0.7)' },
+                        { label: 'Bar Kebugaran', data: dataB, backgroundColor: 'rgba(75, 192, 192, 0.7)' } // dataset baru
                     ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // kunci supaya canvas ikut ukuran parent
+                    maintainAspectRatio: false,
                     plugins: { legend: { position: 'top' } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { stacked: false } // optional, supaya bar tidak menumpuk
+                    }
                 }
             });
         }
 
+
+
         function updateChartPersentase(pengetahuan, keterampilan) {
             const avgP = parseFloat(window.avgP || 0);
             const avgK = parseFloat(window.avgK || 0);
-            const avgB = 0; // default Kebugaran
+            const avgB = 85; // default Kebugaran
 
             const ctx = document.getElementById('persentaseChart').getContext('2d');
             if (chartPersentase) chartPersentase.destroy();
