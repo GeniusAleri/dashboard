@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard BASARNAS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #9d9d9d;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+        }
+
+        .sidebar {
+            width: 80px;
+            background-color: #2c3250;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 25px;
+            gap: 35px;
+        }
+
+        .sidebar i {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .main {
+            background-color: #9d9d9d;
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        .card-dark {
+            background-color: #2c3250 !important;
+            border: none;
+            color: white;
+        }
+
+        .rounded-pill {
+            border-radius: 30px !important;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="d-flex">
+
+    <!-- Sidebar -->
+    <div class="sidebar text-center text-white">
+        <a href="index.html"><i class="bi bi-house"></i></a>
+    </div>
+
+    <!-- Main -->
+    <div class="main flex-grow-1">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="1.png" alt="Logo BASARNAS" style="height: 80px;">
+                <img src="2.png" alt="Logo BASARNAS" style="height: 80px;">
+                <img src="3.png" alt="Logo BASARNAS" style="height: 80px;">
+                <div>
+                    <h1 class="mb-0 fw-semibold">BASARNAS</h1>
+                    <small style="font-size: 30px;">Kantor Pencarian dan Pertolongan Kelas B Banten</small>
+                </div>
+            </div>
+            <div>
+                <input type="text" class="form-control" placeholder="Search..." style="width:200px;">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Title -->
+            <div class="bg-white text-dark px-4 py-2 rounded-pill fw-semibold">
+                Pembinaan Kompetensi
+            </div>
+
+            <!-- Filter Nama -->
+            <div>
+                <label for="namaSelect" class="form-label text-dark fw-bold me-2 mb-0">Filter Berdasarkan Nama:</label>
+                <select id="namaSelect" class="form-select d-inline-block w-auto">
+                    <option value="">Semua Data</option>
+                </select>
+            </div>
+        </div>
+
+
+        <!-- Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card card-dark text-center p-3">
+                    <h6 class="text-secondary">Pengetahuan</h6>
+                    <h3 id="nilaiPengetahuan">Memuat...</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-dark text-center p-3">
+                    <h6 class="text-secondary">Kebugaran Jasmani</h6>
+                    <h3>Memuat...</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-dark text-center p-3">
+                    <h6 class="text-secondary">Keterampilan Teknis</h6>
+                    <h3 id="nilaiKeterampilan">Memuat...</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafik + Akumulasi -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="card card-dark p-2" style="height: 300px;"> <!-- hapus padding internal -->
+                    <h6 class="p-3 mb-0">Grafik Perkembangan</h6> <!-- header card -->
+                    <div style="position: relative; width: 100%; height: calc(100% - 30px);">
+                        <canvas id="monthlyDataChart" style="width: 100%; height: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div class="card card-dark p-3">
+                    <h6>Akumulasi Jumlah Tes</h6>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded mb-2">
+                            <span>Pengetahuan</span><span id="totalPengetahuan">Memuat...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded mb-2">
+                            <span>Kebugaran Jasmani</span><span>Memuat...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
+                            <span>Keterampilan Teknis</span><span id="totalKeterampilan">Memuat...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Persentase -->
+        <div class="row g-3">
+            <div class="col-md-12">
+                <div class="card card-dark p-2 text-center"> <!-- p-0 supaya canvas bisa full -->
+                    <h6 class="p-3 mb-0">Persentase Kemampuan</h6>
+                    <div style="position: relative; width: 100%; height: calc(100% - 30px);">
+                        <canvas id="persentaseChart" style="width: 100%; height: 100%;"></canvas>
+                    </div>
+                    <p id="persentaseText" class="mt-3 mb-0">Memuat data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <script>
+        const sheetUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vStJEUNZfFWX_Kf8Xc0crZThCanAXBqJ1wYa-46qz_iX2hFCwSy07m90bn6IYOzqfmmmtzzbvcREJos/pub?output=csv';
+        const sheetUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRztqwtT2wGstbQhjMTIOFORjDvdfTc3YwyhXqbhACV0uQLeC9nJY37U4c83wi0sjU06565RPYQyePS/pub?output=csv';
+
+        const namaSelect = document.getElementById('namaSelect');
+        let allData = { pengetahuan: [], keterampilan: [] };
+        let chartPerkembangan, chartPersentase;
+
+        async function loadData() {
+            const [pengetahuanCSV, keterampilanCSV] = await Promise.all([
+                fetch(sheetUrl1).then(r => r.text()),
+                fetch(sheetUrl2).then(r => r.text())
+            ]);
+
+            allData.pengetahuan = parseCSV(pengetahuanCSV, 54, 5);
+            allData.keterampilan = parseCSV(keterampilanCSV, 4, 1);
+
+            populateNamaSelect();
+            updateDashboard();
+        }
+
+        function parseCSV(csv, namaIndex, scoreIndex) {
+            const rows = csv.trim().split('\n').map(r => r.split(','));
+            const data = [];
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const timestamp = row[0];
+                const nama = row[namaIndex]?.trim();
+                const scoreRaw = row[scoreIndex];
+                if (!scoreRaw) continue;
+                const score = Number(scoreRaw.split('/')[0].trim());
+                const month = new Date(timestamp).toLocaleString('id-ID', { month: 'long' });
+                data.push({ timestamp, month, nama, score });
+            }
+            return data;
+        }
+
+        function populateNamaSelect() {
+            const namaSet = new Set();
+            [...allData.pengetahuan, ...allData.keterampilan].forEach(d => {
+                if (d.nama) namaSet.add(d.nama);
+            });
+            const sortedNama = [...namaSet].sort();
+            sortedNama.forEach(nama => {
+                const option = document.createElement('option');
+                option.value = nama;
+                option.textContent = nama;
+                namaSelect.appendChild(option);
+            });
+        }
+
+        function updateDashboard() {
+            const selectedNama = namaSelect.value;
+            const filteredPengetahuan = selectedNama
+                ? allData.pengetahuan.filter(d => d.nama === selectedNama)
+                : allData.pengetahuan;
+
+            const filteredKeterampilan = selectedNama
+                ? allData.keterampilan.filter(d => d.nama === selectedNama)
+                : allData.keterampilan;
+
+            updateCards(filteredPengetahuan, filteredKeterampilan);
+            updateChartPerkembangan(filteredPengetahuan, filteredKeterampilan);
+            updateChartPersentase(filteredPengetahuan, filteredKeterampilan);
+        }
+
+        function updateCards(pengetahuan, keterampilan) {
+            const avgP = (pengetahuan.reduce((a, b) => a + b.score, 0) / pengetahuan.length || 0).toFixed(2);
+            const avgK = (keterampilan.reduce((a, b) => a + b.score, 0) / keterampilan.length || 0).toFixed(2);
+
+            document.getElementById('nilaiPengetahuan').textContent = `${avgP} / 100`;
+            document.getElementById('nilaiKeterampilan').textContent = `${avgK} / 100`;
+            document.getElementById('totalPengetahuan').textContent = `Total Data: ${pengetahuan.length}`;
+            document.getElementById('totalKeterampilan').textContent = `Total Data: ${keterampilan.length}`;
+
+            // Simpan untuk persentase
+            window.avgP = avgP;
+            window.avgK = avgK;
+        }
+
+        function updateChartPerkembangan(pengetahuan, keterampilan) {
+            const months = [...new Set([...pengetahuan, ...keterampilan].map(d => d.month))];
+            const countPerMonth = (data) => months.map(m => data.filter(d => d.month === m).length);
+
+            const dataP = countPerMonth(pengetahuan);
+            const dataK = countPerMonth(keterampilan);
+
+            const ctx = document.getElementById('monthlyDataChart').getContext('2d');
+            if (chartPerkembangan) chartPerkembangan.destroy();
+
+            chartPerkembangan = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        { label: 'Pengetahuan', data: dataP, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+                        { label: 'Keterampilan Teknis', data: dataK, backgroundColor: 'rgba(255, 206, 86, 0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // kunci supaya canvas ikut ukuran parent
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function updateChartPersentase(pengetahuan, keterampilan) {
+            const avgP = parseFloat(window.avgP || 0);
+            const avgK = parseFloat(window.avgK || 0);
+            const avgB = 0; // default Kebugaran
+
+            const ctx = document.getElementById('persentaseChart').getContext('2d');
+            if (chartPersentase) chartPersentase.destroy();
+
+            chartPersentase = new Chart(ctx, {
+                type: 'bar', // atau bar horizontal jika mau
+                data: {
+                    labels: ['Pengetahuan', 'Keterampilan Teknis', 'Kebugaran Jasmani'],
+                    datasets: [{
+                        label: 'Persentase Kemampuan',
+                        data: [avgP, avgK, avgB],
+                        backgroundColor: ['#36A2EB', '#FFCE56', '#FF6384']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // kunci supaya canvas stretch penuh
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: value => value + '%' }
+                        }
+                    }
+                }
+            });
+
+
+            document.getElementById('persentaseText').textContent =
+                `${avgP}% Pengetahuan, ${avgK}% Keterampilan Teknis, ${avgB}% Kebugaran Jasmani`;
+        }
+
+
+        namaSelect.addEventListener('change', updateDashboard);
+        loadData();
+    </script>
+
+</body>
+
+</html>
