@@ -260,13 +260,13 @@
             if (chartPerkembangan) chartPerkembangan.destroy();
 
             chartPerkembangan = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: months,
                     datasets: [
                         { label: 'Pengetahuan', data: dataP, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
                         { label: 'Keterampilan Teknis', data: dataK, backgroundColor: 'rgba(255, 206, 86, 0.7)' },
-                        { label: 'Kebugaran Jasmani', data: dataB, backgroundColor: 'rgba(75, 192, 192, 0.7)' }
+                        { label: 'Kebugaran Jasmani', data: dataB, backgroundColor: '#FF6384' }
                     ]
                 },
                 options: {
