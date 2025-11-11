@@ -105,7 +105,7 @@
             <div class="col-md-4">
                 <div class="card card-dark text-center p-3">
                     <h6 class="text-secondary">Kebugaran Jasmani</h6>
-                    <h3>85.00 / 100</h3>
+                    <h3 id="nilaiKebugaran">Memuat...</h3>
                 </div>
             </div>
             <div class="col-md-4">
@@ -136,7 +136,7 @@
                             <span>Pengetahuan</span><span id="totalPengetahuan">Memuat...</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded mb-2">
-                            <span>Kebugaran Jasmani</span><span>Total Data : 1</span>
+                            <span>Kebugaran Jasmani</span><span id="totalKebugaran">Memuat...</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
                             <span>Keterampilan Teknis</span><span id="totalKeterampilan">Memuat...</span>
@@ -169,43 +169,45 @@
     <script>
         const sheetUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vStJEUNZfFWX_Kf8Xc0crZThCanAXBqJ1wYa-46qz_iX2hFCwSy07m90bn6IYOzqfmmmtzzbvcREJos/pub?output=csv';
         const sheetUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRztqwtT2wGstbQhjMTIOFORjDvdfTc3YwyhXqbhACV0uQLeC9nJY37U4c83wi0sjU06565RPYQyePS/pub?output=csv';
+        const sheetUrl3 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRS1-x5Tk4a0pN8OKbCUrxF8Z_Z1SbaDtw4rf_2cixJZD2kCuV8pG6m5YjCLvw4pVDh5JlvE4L7Gj2Q/pub?output=csv';
 
         const namaSelect = document.getElementById('namaSelect');
-        let allData = { pengetahuan: [], keterampilan: [] };
+        let allData = { pengetahuan: [], keterampilan: [], kebugaran: [] };
         let chartPerkembangan, chartPersentase;
 
         async function loadData() {
-            const [pengetahuanCSV, keterampilanCSV] = await Promise.all([
+            const [pengetahuanCSV, keterampilanCSV, kebugaranCSV] = await Promise.all([
                 fetch(sheetUrl1).then(r => r.text()),
-                fetch(sheetUrl2).then(r => r.text())
+                fetch(sheetUrl2).then(r => r.text()),
+                fetch(sheetUrl3).then(r => r.text())
             ]);
 
-            allData.pengetahuan = parseCSV(pengetahuanCSV, 54, 5);
+            allData.pengetahuan = parseCSV(pengetahuanCSV, 53, 5);
             allData.keterampilan = parseCSV(keterampilanCSV, 4, 1);
+            allData.kebugaran = parseCSV(kebugaranCSV, 3, 12); // 👈 sesuaikan index nama & nilai sesuai kolom kamu
 
             populateNamaSelect();
             updateDashboard();
         }
 
         function parseCSV(csv, namaIndex, scoreIndex) {
-            const rows = csv.trim().split('\n').map(r => r.split(','));
+            const result = Papa.parse(csv, { header: false, skipEmptyLines: true });
             const data = [];
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
+            result.data.slice(1).forEach(row => {
                 const timestamp = row[0];
                 const nama = row[namaIndex]?.trim();
                 const scoreRaw = row[scoreIndex];
-                if (!scoreRaw) continue;
+                if (!scoreRaw || !nama) return;
                 const score = Number(scoreRaw.split('/')[0].trim());
                 const month = new Date(timestamp).toLocaleString('id-ID', { month: 'long' });
                 data.push({ timestamp, month, nama, score });
-            }
+            });
             return data;
         }
 
         function populateNamaSelect() {
             const namaSet = new Set();
-            [...allData.pengetahuan, ...allData.keterampilan].forEach(d => {
+            [...allData.pengetahuan, ...allData.keterampilan, ...allData.kebugaran].forEach(d => {
                 if (d.nama) namaSet.add(d.nama);
             });
             const sortedNama = [...namaSet].sort();
@@ -219,46 +221,40 @@
 
         function updateDashboard() {
             const selectedNama = namaSelect.value;
-            const filteredPengetahuan = selectedNama
-                ? allData.pengetahuan.filter(d => d.nama === selectedNama)
-                : allData.pengetahuan;
+            const filteredP = selectedNama ? allData.pengetahuan.filter(d => d.nama === selectedNama) : allData.pengetahuan;
+            const filteredK = selectedNama ? allData.keterampilan.filter(d => d.nama === selectedNama) : allData.keterampilan;
+            const filteredB = selectedNama ? allData.kebugaran.filter(d => d.nama === selectedNama) : allData.kebugaran;
 
-            const filteredKeterampilan = selectedNama
-                ? allData.keterampilan.filter(d => d.nama === selectedNama)
-                : allData.keterampilan;
-
-            updateCards(filteredPengetahuan, filteredKeterampilan);
-            updateChartPerkembangan(filteredPengetahuan, filteredKeterampilan);
-            updateChartPersentase(filteredPengetahuan, filteredKeterampilan);
+            updateCards(filteredP, filteredK, filteredB);
+            updateChartPerkembangan(filteredP, filteredK, filteredB);
+            updateChartPersentase(filteredP, filteredK, filteredB);
         }
 
-        function updateCards(pengetahuan, keterampilan) {
+        function updateCards(pengetahuan, keterampilan, kebugaran) {
             const avgP = (pengetahuan.reduce((a, b) => a + b.score, 0) / pengetahuan.length || 0).toFixed(2);
             const avgK = (keterampilan.reduce((a, b) => a + b.score, 0) / keterampilan.length || 0).toFixed(2);
+            const avgB = (kebugaran.reduce((a, b) => a + b.score, 0) / kebugaran.length || 0).toFixed(2);
 
             document.getElementById('nilaiPengetahuan').textContent = `${avgP} / 100`;
             document.getElementById('nilaiKeterampilan').textContent = `${avgK} / 100`;
+            document.getElementById('nilaiKebugaran').textContent = `${avgB} / 100`; // kebugaran
             document.getElementById('totalPengetahuan').textContent = `Total Data: ${pengetahuan.length}`;
             document.getElementById('totalKeterampilan').textContent = `Total Data: ${keterampilan.length}`;
+            document.getElementById('totalKebugaran').textContent = `Total Data: ${kebugaran.length}`;
 
             // Simpan untuk persentase
             window.avgP = avgP;
             window.avgK = avgK;
+            window.avgB = avgB;
         }
 
-        function updateChartPerkembangan(pengetahuan = [], keterampilan = []) {
-            // Jika pengetahuan/keterampilan kosong, gunakan bulan default
-            const defaultMonths = ['Nov'];
-            const monthsFromData = [...new Set([...pengetahuan, ...keterampilan].map(d => d.month))];
-            const months = monthsFromData.length ? monthsFromData : defaultMonths;
-
+        function updateChartPerkembangan(pengetahuan, keterampilan, kebugaran) {
+            const months = [...new Set([...pengetahuan, ...keterampilan, ...kebugaran].map(d => d.month))];
             const countPerMonth = (data) => months.map(m => data.filter(d => d.month === m).length);
 
             const dataP = countPerMonth(pengetahuan);
             const dataK = countPerMonth(keterampilan);
-
-            // Bar Kebugaran selalu data 2
-            const dataB = months.map(() => 1);
+            const dataB = countPerMonth(kebugaran);
 
             const ctx = document.getElementById('monthlyDataChart').getContext('2d');
             if (chartPerkembangan) chartPerkembangan.destroy();
@@ -270,33 +266,28 @@
                     datasets: [
                         { label: 'Pengetahuan', data: dataP, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
                         { label: 'Keterampilan Teknis', data: dataK, backgroundColor: 'rgba(255, 206, 86, 0.7)' },
-                        { label: 'Bar Kebugaran', data: dataB, backgroundColor: 'rgba(75, 192, 192, 0.7)' } // dataset baru
+                        { label: 'Kebugaran Jasmani', data: dataB, backgroundColor: 'rgba(75, 192, 192, 0.7)' }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'top' } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { stacked: false } // optional, supaya bar tidak menumpuk
-                    }
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                 }
             });
         }
 
-
-
-        function updateChartPersentase(pengetahuan, keterampilan) {
+        function updateChartPersentase() {
             const avgP = parseFloat(window.avgP || 0);
             const avgK = parseFloat(window.avgK || 0);
-            const avgB = 85; // default Kebugaran
+            const avgB = parseFloat(window.avgB || 0);
 
             const ctx = document.getElementById('persentaseChart').getContext('2d');
             if (chartPersentase) chartPersentase.destroy();
 
             chartPersentase = new Chart(ctx, {
-                type: 'bar', // atau bar horizontal jika mau
+                type: 'bar',
                 data: {
                     labels: ['Pengetahuan', 'Keterampilan Teknis', 'Kebugaran Jasmani'],
                     datasets: [{
@@ -307,27 +298,22 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // kunci supaya canvas stretch penuh
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: { callback: value => value + '%' }
-                        }
+                        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
                     }
                 }
             });
-
 
             document.getElementById('persentaseText').textContent =
                 `${avgP}% Pengetahuan, ${avgK}% Keterampilan Teknis, ${avgB}% Kebugaran Jasmani`;
         }
 
-
         namaSelect.addEventListener('change', updateDashboard);
         loadData();
     </script>
+
 
 </body>
 
